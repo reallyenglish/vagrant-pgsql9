@@ -6,8 +6,8 @@ Vagrant::Config.run do |config|
   # options are documented and commented below. For a complete reference,
   # please see the online documentation at vagrantup.com.
 
-  # vagrant box add lucid32 http://files.vagrantup.com/lucid32.box
-  config.vm.box = "lucid32"
+  # vagrant box add precise32 http://files.vagrantup.com/precise32.box 
+  config.vm.box = "precise32"
 
   config.vm.provision :chef_solo do |chef|
     chef.cookbooks_path = "cookbooks"
