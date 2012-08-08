@@ -165,22 +165,22 @@ execute "init-postgres" do
   notifies :create_if_missing, "file[/var/run/postgres.initdb.done]", :immediate
 end
 
-sysctl "Raise kernel.shmmax" do
-  variables 'kernel.shmmax' => node[:postgresql][:total_memory]
-end
-
-sysctl "Raise kernel.shmall" do
-  variables 'kernel.shmall' => node[:postgresql][:total_memory] / 4096
-  not_if { node[:postgresql][:total_memory]/4096 < 2097152 }
-end
-
-sysctl "Modify kernel.sem" do
-  variables 'kernel.sem' => node[:postgresql][:kernel_sem]
-end
-
-sysctl "Swappiness of 15" do
-  variables 'vm.swappiness' => node[:postgresql][:swappiness]
-end
+# sysctl "Raise kernel.shmmax" do
+#   variables 'kernel.shmmax' => node[:postgresql][:total_memory]
+# end
+# 
+# sysctl "Raise kernel.shmall" do
+#   variables 'kernel.shmall' => node[:postgresql][:total_memory] / 4096
+#   not_if { node[:postgresql][:total_memory]/4096 < 2097152 }
+# end
+# 
+# sysctl "Modify kernel.sem" do
+#   variables 'kernel.sem' => node[:postgresql][:kernel_sem]
+# end
+# 
+# sysctl "Swappiness of 15" do
+#   variables 'vm.swappiness' => node[:postgresql][:swappiness]
+# end
 
 template "#{node[:postgresql][:hba_file]}" do
   source "pg_hba.conf.erb"
