@@ -20,33 +20,24 @@
 case platform
 when "debian"
 
-  case
-  when platform_version.to_f <= 5.0
+  if platform_version.to_f == 5.0
     default[:postgresql][:version] = "8.3"
-  when platform_version.to_f == 6.0
+  elsif platform_version =~ /squeeze/
     default[:postgresql][:version] = "8.4"
-  else
-    default[:postgresql][:version] = "9.1"
   end
 
   set[:postgresql][:dir] = "/etc/postgresql/#{node[:postgresql][:version]}/main"
-  default['postgresql']['client_packages'] = %w{postgresql-client libpq-dev}
-  default['postgresql']['server_packages'] = %w{postgresql}
 
 when "ubuntu"
 
   case
   when platform_version.to_f <= 9.04
     default[:postgresql][:version] = "8.3"
-  when platform_version.to_f <= 11.04
-    default[:postgresql][:version] = "8.4"
   else
     default[:postgresql][:version] = "9.1"
   end
 
   set[:postgresql][:dir] = "/etc/postgresql/#{node[:postgresql][:version]}/main"
-  default['postgresql']['client_packages'] = %w{postgresql-client libpq-dev}
-  default['postgresql']['server_packages'] = %w{postgresql}
 
 when "fedora"
 
@@ -57,28 +48,11 @@ when "fedora"
   end
 
   set[:postgresql][:dir] = "/var/lib/pgsql/data"
-  default['postgresql']['client_packages'] = %w{postgresql-devel}
-  default['postgresql']['server_packages'] = %w{postgresql-server}
 
-when "amazon"
+when "redhat","centos","scientific","amazon"
 
   default[:postgresql][:version] = "8.4"
   set[:postgresql][:dir] = "/var/lib/pgsql/data"
-  default['postgresql']['client_packages'] = %w{postgresql-devel}
-  default['postgresql']['server_packages'] = %w{postgresql-server}
-
-when "redhat","centos","scientific"
-
-  default[:postgresql][:version] = "8.4"
-  set[:postgresql][:dir] = "/var/lib/pgsql/data"
-
-  if node['platform_version'].to_f >= 6.0
-    default['postgresql']['client_packages'] = %w{postgresql-devel}
-    default['postgresql']['server_packages'] = %w{postgresql-server}
-  else
-    default['postgresql']['client_packages'] = ["postgresql#{node['postgresql']['version'].split('.').join}-devel"]
-    default['postgresql']['server_packages'] = ["postgresql#{node['postgresql']['version'].split('.').join}-server"]
-  end
 
 when "suse"
 
@@ -89,14 +63,61 @@ when "suse"
   end
 
   set[:postgresql][:dir] = "/var/lib/pgsql/data"
-  default['postgresql']['client_packages'] = %w{postgresql-client libpq-dev}
-  default['postgresql']['server_packages'] = %w{postgresql-server}
 
 else
   default[:postgresql][:version] = "8.4"
   set[:postgresql][:dir]         = "/etc/postgresql/#{node[:postgresql][:version]}/main"
-  default['postgresql']['client_packages'] = ["postgresql"]
-  default['postgresql']['server_packages'] = ["postgresql"]
 end
 
-default[:postgresql][:listen_addresses] = "localhost"
+# Postgresql tuning and optimization
+
+default[:postgresql][:default_statistics_target]=100
+default[:postgresql][:max_fsm_pages]=500000
+default[:postgresql][:max_fsm_relations]=10000
+default[:postgresql][:logging_collector]="on"
+default[:postgresql][:log_rotation_age]="1d"
+default[:postgresql][:log_rotation_size]="100MB"
+default[:postgresql][:checkpoint_timeout]="5min"
+default[:postgresql][:checkpoint_completion_target]=0.5
+default[:postgresql][:checkpoint_warning]="30s"
+default[:postgresql][:checkpoint_segments]=100
+default[:postgresql][:wal_buffers]="8MB"
+default[:postgresql][:wal_writer_delay]="200ms"
+default[:postgresql][:max_stack_depth]="7MB"
+default[:postgresql][:total_memory]=node[:memory][:total].to_i * 1024
+default[:postgresql][:total_memory_mb]=(node[:memory][:total].to_i * 1024) / 1024 / 1024
+default[:postgresql][:shared_memory_percentage]=0.25
+default[:postgresql][:effective_cache_size_percentage]=0.80
+default[:postgresql][:shared_buffers]=((node[:memory][:total].to_i * 1024) / 1024 / 1024 * 0.25).to_i
+default[:sysctl][:shared_buffers]=node[:memory][:total].to_i * 1024
+default[:postgresql][:effective_cache_size]=((node[:memory][:total].to_i * 1024) * 0.80).to_i / 1024 / 1024
+if node[:memory][:total].to_i < 5147483648
+  default[:postgresql][:maintenance_work_mem]="128MB"
+  default[:postgresql][:work_mem]="32MB"
+else
+  default[:postgresql][:maintenance_work_mem]="256MB"
+  default[:postgresql][:work_mem]="64MB"
+end
+
+# Server Settings
+default[:postgresql][:data_path]="/var/lib/postgresql"
+default[:postgresql][:data_directory]="#{node[:postgresql][:data_path]}/#{node[:postgresql][:version]}/data"
+default[:postgresql][:wal_directory]="#{node[:postgresql][:data_path]}/#{node[:postgresql][:version]}/pg_xlog"
+default[:postgresql][:hba_file]="#{node[:postgresql][:data_path]}/#{node[:postgresql][:version]}/data/pg_hba.conf"
+default[:postgresql][:ident_file]="#{node[:postgresql][:data_path]}/pg_ident.conf"
+default[:postgresql][:external_pid_file]="#{node[:postgresql][:data_path]}/#{node[:postgresql][:version]}/postgresql.pid"
+default[:postgresql][:temp_tablespaces]="/var/tmp/postgresql"
+default[:postgresql][:local_authentication]="md5"
+default[:postgresql][:encoding]="UTF8"
+default[:postgresql][:locale]="en_US.UTF-8"
+default[:postgresql][:text_search_config]="pg_catalog.english"
+default[:postgresql][:max_connections]="65535"
+# Hot standby Settings
+default[:postgresql][:wal_level]="hot_standby"
+default[:postgresql][:hot_standby]="on"
+default[:postgresql][:hot_standby_feedback]="on"
+default[:postgresql][:replicas]=["10.0.0.0/8"]
+
+# Misc Settings
+default[:postgresql][:swappiness]="15"
+default[:postgresql][:kernel_sem]="4096 6553555 1600 65535"

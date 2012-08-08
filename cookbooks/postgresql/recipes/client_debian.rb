@@ -1,8 +1,10 @@
 #
 # Cookbook Name:: postgresql
-# Recipe:: default
+# Recipe:: client
 #
-# Copyright 2009, Opscode, Inc.
+# Author:: Joshua Timberman (<joshua@opscode.com>)
+# Author:: Lamont Granquist (<lamont@opscode.com>)
+# Copyright 2009-2011 Opscode, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,12 +18,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-#apt_repository "postgresql-#{node[:postgresql][:version]}" do
-#  uri "http://ppa.launchpad.net/pitti/postgresql/ubuntu"
-#  distribution node['lsb']['codename']
-#  components ["main"]
-#  key "8683D8A2"
-#  keyserver "keyserver.ubuntu.com"
-#end
-require_recipe "postgresql::client"
-# require_recipe "postgresql::server"
+
+apt_repository "postgresql-#{node[:postgresql][:version]}" do
+  uri "http://ppa.launchpad.net/pitti/postgresql/ubuntu"
+  distribution node['lsb']['codename']
+  components ["main"]
+  key "8683D8A2"
+  keyserver "keyserver.ubuntu.com"
+  deb_src true
+  action :add
+end
+
+package "postgresql-client"
+package "libpq-dev"
+package "make"
+
+#gem_package "pg" do
+#  action :nothing
+#end.run_action(:install)

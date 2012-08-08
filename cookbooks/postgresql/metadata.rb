@@ -1,9 +1,9 @@
-maintainer        "Opscode, Inc."
-maintainer_email  "cookbooks@opscode.com"
+maintainer        "Scott M. Likens"
+maintainer_email  "scott@likens.us"
 license           "Apache 2.0"
 description       "Installs and configures postgresql for clients or servers"
 long_description  IO.read(File.join(File.dirname(__FILE__), 'README.md'))
-version           "0.99.5"
+version           "0.99.6"
 recipe            "postgresql", "Includes postgresql::client"
 recipe            "postgresql::client", "Installs postgresql client package(s)"
 recipe            "postgresql::server", "Installs postgresql server packages, templates"
@@ -18,4 +18,6 @@ end
   supports el, ">= 6.0"
 end
 
-depends "openssl"
+%w{apt openssl sysctl}.each do |cb|
+  depends cb
+end
