@@ -1,0 +1,17 @@
+development:
+  adapter: postgresql
+  database: pisces
+  encoding: unicode
+  username: postgres
+  password: 
+  host: localhost
+  port: 15432
+
+test:
+  adapter: postgresql
+  database: pisces_test
+  encoding: unicode
+  username: postgres
+  password: 
+  host: localhost
+  port: 15432
